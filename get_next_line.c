@@ -12,7 +12,7 @@
 
 #include "get_next_line.h"
 
-void 	ft_free_all(void *content, size_t size)
+/*void 	ft_free_all(void *content, size_t size)
 {
 	t_file *file;
 
@@ -21,7 +21,7 @@ void 	ft_free_all(void *content, size_t size)
 	if (file->content)
 		free(file->content);
 	free(file);
-}
+}*/
 
 t_file	*create_file(t_list **list, int fd)
 {
@@ -83,13 +83,19 @@ int		get_next_line(int const fd, char **line)
 		else
 			file->content = ft_strjoin(file->content, buff);
 	}
+	/*free(buff);
+	buff = NULL;*/
 	if (ret == -1)
 		return (-1);
-	if (file->content && file->content[0])
+	if (file->content == NULL)
+		return (0);
+	if (ft_strchr(file->content, '\n'))
 	{
-		*line = ft_strdup(file->content);
-		ft_lstdelone(&list, &ft_free_all);
+		*line = ft_strcut(&file->content);
 		return (1);
 	}
-	return (0);
+	/*else if (ret == 0 && ft_strchr(file->content, '\n') == NULL)*/
+	*line = ft_strdup(file->content);
+	file->content = NULL;
+	return (1);
 }
