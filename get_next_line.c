@@ -74,7 +74,7 @@ int		get_next_line(int const fd, char **line)
 
 	if (fd < 0 || line == NULL)
 		return (-1);
-	file = get_file(&list, fd);
+	file = get_file(&list, fd); //ICI
 	while ((ret = read(fd, buff, BUFF_SIZE)) > 0)
 	{
 		buff[ret] = '\0';
