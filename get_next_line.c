@@ -12,33 +12,11 @@
 
 #include "get_next_line.h"
 
-/*void 	ft_free_all(void *content, size_t size)
-{
-	t_file *file;
-
-	(void)size;
-	file = content;
-	if (file->content)
-		free(file->content);
-	free(file);
-}*/
-
-t_file	*create_file(t_list **list, int fd)
-{
-	t_file	file;
-	t_list	*new;
-
-	file.fd = fd;
-	file.content = ft_strnew(1);
-	new = ft_lstnew(&file, sizeof(t_file));
-	ft_lstadd(list, new);
-	return (new->content);
-}
-
 t_file	*get_file(t_list **list, int fd)
 {
 	t_list	*cur;
 	t_file	*file;
+	t_file	new_file;
 
 	cur = *list;
 	while (cur)
@@ -46,23 +24,74 @@ t_file	*get_file(t_list **list, int fd)
 		file = cur->content;
 		if (file->fd == fd)
 			return (file);
-		else
-			cur = cur->next;
+		cur = cur->next;
 	}
-	return (create_file(list, fd));
+	new_file.fd = fd;
+	new_file.content = NULL;
+	ft_lstadd(list, ft_lstnew(&new_file, sizeof(t_file)));
+	return ((*list)->content);
 }
 
-char	*ft_strcut(char **str)
+void	remove_file(t_list **list, int fd)
 {
-	char    *line;
-	size_t	size;
+	t_file	*file;
+	t_list	*tmp;
+	t_list	*prev;
 
-	size = ft_strchr(*str, '\n') - *str;
+	tmp = *list;
+	if (tmp != NULL && (file = tmp->content) && file->fd == fd)
+	{
+		*list = tmp->next;
+		free(tmp->content);
+		free(tmp);
+		return ;
+	}
+	while (tmp && (file = tmp->content) && file->fd == fd)
+	{
+		prev = tmp;
+		tmp = tmp->next;
+	}
+	if (tmp == NULL)
+		return ;
+	prev->next = tmp->next;
+	free(tmp->content);
+	free(tmp);
+}
+
+char	*ft_strcut(char **str, char c)
+{
+	char	*line;
+	size_t	size;
+	char	*tmp;
+	char	*save;
+
+	size = ft_strchr(*str, c) - *str;
 	line = ft_strnew(size);
 	ft_strncpy(line, *str, size);
 	line[size] = '\0';
-	*str = ft_strchr(*str, '\n') + 1;
+	save = *str;
+	*str += size + 1;
+	tmp = ft_strdup(*str);
+	free(save);
+	*str = tmp;
 	return (line);
+}
+
+int		check_end_of_line(t_list **list, t_file *file, int fd, char **line)
+{
+	if ((!file->content) || file->content[0] == '\0')
+	{
+		remove_file(list, fd);
+		return (0);
+	}
+	if (ft_strchr(file->content, '\n'))
+	{
+		*line = ft_strcut(&file->content, '\n');
+		return (1);
+	}
+	*line = ft_strdup(file->content);
+	file->content = NULL;
+	return (1);
 }
 
 int		get_next_line(int const fd, char **line)
@@ -72,30 +101,18 @@ int		get_next_line(int const fd, char **line)
 	int				ret;
 	char			buff[BUFF_SIZE + 1];
 
-	if (fd < 0 || line == NULL)
+	if (fd < 0 || line == NULL || BUFF_SIZE <= 0)
 		return (-1);
-	file = get_file(&list, fd); //ICI
+	file = get_file(&list, fd);
 	while ((ret = read(fd, buff, BUFF_SIZE)) > 0)
 	{
 		buff[ret] = '\0';
-		if (!file->content[0])
+		if (!file->content)
 			file->content = ft_strdup(buff);
 		else
-			file->content = ft_strjoin(file->content, buff);
+			file->content = ft_strfjoin(file->content, buff);
 	}
-	/*free(buff);
-	buff = NULL;*/
 	if (ret == -1)
 		return (-1);
-	if (file->content == NULL)
-		return (0);
-	if (ft_strchr(file->content, '\n'))
-	{
-		*line = ft_strcut(&file->content);
-		return (1);
-	}
-	/*else if (ret == 0 && ft_strchr(file->content, '\n') == NULL)*/
-	*line = ft_strdup(file->content);
-	file->content = NULL;
-	return (1);
+	return (check_end_of_line(&list, file, fd, line));
 }
