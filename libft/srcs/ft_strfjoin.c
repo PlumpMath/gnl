@@ -1,23 +1,42 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strlendl.c                                      :+:      :+:    :+:   */
+/*   ft_strfjoin.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lede-ser <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/04/18 19:30:50 by lede-ser          #+#    #+#             */
-/*   Updated: 2016/04/18 19:30:57 by lede-ser         ###   ########.fr       */
+/*   Created: 2015/12/10 16:21:06 by lede-ser          #+#    #+#             */
+/*   Updated: 2015/12/17 19:07:38 by lede-ser         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <libft.h>
 
-int		ft_strlendl(char *s)
+char	*ft_strfjoin(char *s1, char *s2)
 {
-	size_t i;
+	char			*str;
+	unsigned int	i;
+	unsigned int	j;
 
+	str = ft_strnew(ft_strlen(s1) + ft_strlen(s2) + 1);
+	if (!str)
+		return (NULL);
 	i = 0;
-	while (s[i] && s[i] != '\n')
+	j = 0;
+	while (i < ft_strlen(s1))
+	{
+		str[j] = s1[i];
+		j++;
 		i++;
-	return (i);
+	}
+	i = 0;
+	while (i < ft_strlen(s2))
+	{
+		str[j] = s2[i];
+		j++;
+		i++;
+	}
+	str[j] = '\0';
+	free(s1);
+	return (str);
 }
